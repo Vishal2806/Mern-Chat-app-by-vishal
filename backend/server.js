@@ -36,7 +36,7 @@ server.listen(PORT, () => {
 
 // Keep the server awake on Render
 setInterval(() => {
-  https.get('https://backend-b06f.onrender.com', (res) => {
+  https.get('https://mern-chat-app-by-vishal.onrender.com', (res) => {
     console.log(`Server hit with status code: ${res.statusCode}`);
   }).on('error', (e) => {
     console.error(`Got error: ${e.message}`);
