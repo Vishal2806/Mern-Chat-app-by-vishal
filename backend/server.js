@@ -2,6 +2,7 @@ import path from "path";
 import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import https from "https"; // Import https for the keep-alive ping
 
 import authRoutes from "./routes/auth.routes.js";
 import messageRoutes from "./routes/message.routes.js";
@@ -13,25 +14,28 @@ import { app, server } from "./socket/socket.js";
 dotenv.config();
 
 const __dirname = path.resolve();
-// PORT should be assigned after calling dotenv.config() because we need to access the env variables. Didn't realize while recording the video. Sorry for the confusion.
 const PORT = process.env.PORT || 5000;
 
-app.use(express.json()); // to parse the incoming requests with JSON payloads (from req.body)
+app.use(express.json());
 app.use(cookieParser());
 
+// Cache control for static files
+app.use(express.static(path.join(__dirname, "/frontend/dist"), {
+  maxAge: "1d", // Cache for one day
+}));
+
+// Define API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/users", userRoutes);
 
-app.use(express.static(path.join(__dirname, "/frontend/dist")));
-
 app.get("*", (req, res) => {
-	res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
+  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
 });
 
 server.listen(PORT, () => {
-	connectToMongoDB();
-	console.log(`Server Running on port ${PORT}`);
+  connectToMongoDB();
+  console.log(`Server Running on port ${PORT}`);
 });
 
 // Keep the server awake on Render
@@ -41,4 +45,4 @@ setInterval(() => {
   }).on('error', (e) => {
     console.error(`Got error: ${e.message}`);
   });
-}, 3 * 60 * 1000); // Ping the server every 3 minutes (180000 ms)
+}, 2 * 60 * 1000); // Ping the server every 2 minutes (120000 ms)
